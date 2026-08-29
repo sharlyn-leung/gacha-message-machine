@@ -5,23 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gacha Machine</title>
     <style>
-        body { font-family: sans-serif; background: #f7f9fc; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; }
-        .recipient-header { font-size: 24px; font-weight: bold; color: #ff4757; background: #fff; padding: 8px 20px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 15px; min-height: 32px; }
-        .gacha-container { background: url('machine.jpeg') no-repeat center/contain; width: 420px; height: 520px; margin-bottom: 25px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        @keyframes shake { 0%,100%{transform:translate(0,0)} 20%{transform:translate(-3px,1px)} 40%{transform:translate(2px,-1px)} 60%{transform:translate(-2px,-2px)} 80%{transform:translate(3px,2px)} }
-        .is-shaking { animation: shake 0.15s infinite; }
-        .prize-card { padding: 15px; background: rgba(255,249,230,.95); border: 2px dashed #ffa502; border-radius: 12px; width: 240px; text-align: center; margin-bottom: 20px; transition: opacity .2s; }
-        .pull-btn, .btn { background: #ff4757; color: #fff; border: none; padding: 12px 28px; font-size: 18px; border-radius: 30px; cursor: pointer; font-weight: bold; }
-        .pull-btn:disabled { background: #a4b0be; cursor: not-allowed; }
-        .page-view { display: none; width: 100%; max-width: 420px; flex-direction: column; align-items: center; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: sans-serif; overflow-x: hidden; }
+        .gacha-container { background: url('machine.jpeg') no-repeat center center/cover; width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; box-sizing: border-box; }
+        .recipient-header { font-size: 26px; font-weight: bold; color: #ff4757; background: rgba(255,255,255,0.9); padding: 10px 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 25px; min-height: 35px; z-index: 10; }
+        @keyframes shake { 0%,100%{transform:translate(0,0)} 20%{transform:translate(-5px,2px)} 40%{transform:translate(4px,-2px)} 60%{transform:translate(-3px,-3px)} 80%{transform:translate(5px,4px)} }
+        .is-shaking { animation: shake 0.12s infinite; }
+        .prize-card { padding: 20px; background: rgba(255,249,230,.95); border: 2px dashed #ffa502; border-radius: 12px; width: 260px; text-align: center; margin-bottom: 25px; transition: opacity .2s; box-shadow: 0 4px 10px rgba(0,0,0,0.15); z-index: 10; }
+        .pull-btn, .btn { background: #ff4757; color: #fff; border: none; padding: 14px 35px; font-size: 20px; border-radius: 30px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(255,71,87,0.4); z-index: 10; }
+        .pull-btn:disabled { background: #a4b0be; cursor: not-allowed; box-shadow: none; }
+        .page-view { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; }
         .active-view { display: flex; }
-        .setup-container { background: #fff; padding: 25px; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); width: 100%; box-sizing: border-box; }
-        .input-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
-        input { padding: 12px; font-size: 15px; border: 2px solid #e4e7eb; border-radius: 10px; outline: none; }
+        .setup-container { background: #fff; padding: 30px; border-radius: 20px; box-shadow: 0 8px 30px rgba(0,0,0,0.12); width: 90%; max-width: 420px; box-sizing: border-box; }
+        .input-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px; }
+        input { padding: 12px; font-size: 16px; border: 2px solid #e4e7eb; border-radius: 10px; outline: none; }
+        input:focus { border-color: #ff4757; }
         .add-btn { background: #2ed573; border-radius: 10px; }
         .share-btn { background: #1e90ff; margin-top: 15px; width: 100%; border-radius: 10px; }
-        ul { text-align: left; max-height: 120px; overflow-y: auto; color: #57606f; width: 80%; }
-        .redirect-footer { margin-top: 30px; font-size: 15px; color: #57606f; background: #fff; padding: 12px 25px; border-radius: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        ul { text-align: left; max-height: 120px; overflow-y: auto; color: #57606f; width: 100%; padding-left: 20px; box-sizing: border-box; }
+        .redirect-footer { margin-top: 35px; font-size: 15px; color: #57606f; background: rgba(255,255,255,0.9); padding: 12px 25px; border-radius: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 10; }
         .redirect-footer a { color: #1e90ff; text-decoration: none; font-weight: bold; margin-left: 5px; }
     </style>
 </head>
@@ -44,16 +45,18 @@
 
     <!-- PLAY RECEIVER VIEW -->
     <div id="play-page" class="page-view">
-        <div class="recipient-header" id="display-recipient">To: Someone Special</div>
         <div class="gacha-container" id="machine-wrapper">
-            <div class="prize-card" id="prize-box"><p id="display-message" style="margin:0; font-size:18px; font-weight:bold;">Spin to reveal a capsule!</p></div>
+            <div class="recipient-header" id="display-recipient">To: Someone Special</div>
+            <div class="prize-card" id="prize-box">
+                <p id="display-message" style="margin:0; font-size:18px; font-weight:bold;">Spin to reveal a capsule!</p>
+            </div>
             <button id="gacha-button" class="pull-btn">Pull Gacha!</button>
+            <div class="redirect-footer">want to create ur own? <a id="creator-link" href="#">click this like to create</a></div>
         </div>
-        <div class="redirect-footer">want to create ur own? <a id="creator-link" href="#">click this like to create</a></div>
     </div>
 
 <script>
-    let pool = [], last = -1, recipient = "Someone Special";
+    let masterPool = [], activeDeck = [], lastPickText = "", recipient = "Someone Special";
     const cleanUrl = window.location.origin + window.location.pathname;
     document.getElementById("creator-link").href = cleanUrl;
 
@@ -62,7 +65,9 @@
 
     if (data) {
         try {
-            pool = JSON.parse(decodeURIComponent(atob(data)));
+            masterPool = JSON.parse(decodeURIComponent(atob(data)));
+            // Make a clone of the master messages to draw from actively
+            activeDeck = [...masterPool]; 
             recipient = user ? decodeURIComponent(user) : recipient;
             document.getElementById("display-recipient").innerText = "To: " + recipient;
             document.getElementById("play-page").classList.add("active-view");
@@ -75,34 +80,53 @@
         const msgText = document.getElementById("message-input").value.trim();
         if (document.getElementById("recipient-input").value.trim()) recipient = document.getElementById("recipient-input").value.trim();
         if (msgText) {
-            pool.push(msgText);
+            masterPool.push(msgText);
             document.getElementById("message-input").value = "";
             document.getElementById("recipient-input").disabled = true;
             const li = document.createElement("li"); li.innerText = `"${msgText}"`;
             document.getElementById("message-list").appendChild(li);
-            document.getElementById("capsule-count").innerText = pool.length;
+            document.getElementById("capsule-count").innerText = masterPool.length;
             document.getElementById("share-button").style.display = "block";
         }
     });
 
     document.getElementById("share-button").addEventListener("click", () => {
-        const b64 = btoa(encodeURIComponent(JSON.stringify(pool)));
+        const b64 = btoa(encodeURIComponent(JSON.stringify(masterPool)));
         navigator.clipboard.writeText(`${cleanUrl}?to=${encodeURIComponent(recipient)}&pool=${b64}`)
             .then(() => alert("✨ Link copied! Send it to your friend!"))
             .catch(() => alert("Error copying!"));
     });
 
     document.getElementById("gacha-button").addEventListener("click", () => {
-        if (!pool.length) return;
+        if (!masterPool.length) return;
         const gachaBtn = document.getElementById("gacha-button"), prizeBox = document.getElementById("prize-box"), wrapper = document.getElementById("machine-wrapper");
         gachaBtn.disabled = true; prizeBox.style.opacity = "0"; wrapper.classList.add("is-shaking");
+        
         setTimeout(() => {
             wrapper.classList.remove("is-shaking");
-            let pick = pool.length === 1 ? 0 : Math.floor(Math.random() * pool.length);
-            if(pool.length > 1) { while(pick === last) { pick = Math.floor(Math.random() * pool.length); } }
-            last = pick;
-            document.getElementById("display-message").innerText = pool[pick];
-            prizeBox.style.opacity = "1"; gachaBtn.disabled = false;
+            
+            // AUTOMATIC DECK REFILL MECHANIC
+            if (activeDeck.length === 0) {
+                activeDeck = [...masterPool]; // Refill from master records
+            }
+
+            // Draw a random index from our remaining active pool deck
+            let randIndex = Math.floor(Math.random() * activeDeck.length);
+            
+            // Anti-overlap check: prevent matching the last message if we just refilled the deck
+            if (masterPool.length > 1 && activeDeck[randIndex] === lastPickText) {
+                randIndex = (randIndex + 1) % activeDeck.length;
+            }
+
+            let chosenMessage = activeDeck[randIndex];
+            lastPickText = chosenMessage;
+            
+            // Show message and take it out of the active deck layout
+            document.getElementById("display-message").innerText = chosenMessage;
+            activeDeck.splice(randIndex, 1); 
+
+            prizeBox.style.opacity = "1";
+            gachaBtn.disabled = false;
         }, 800);
     });
 </script>
