@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animated Custom Gacha Machine</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f7f9fc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            margin: 0;
+        }
+
+        /* THE SHAKING MACHINE CONTAINER STYLE WITH JPEG BACKGROUND */
+        .gacha-container {
+            background-image: url('machine.jpeg'); 
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            
+            /* Sizing to frame your background image perfectly */
+            width: 420px;
+            height: 520px; 
+            margin-bottom: 25px;
+            
+            /* Aligning the content neatly inside the center of your machine image */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* THE SHAKING ANIMATION LOGIC */
+        @keyframes gachaShake {
+            0% { transform: translate(2px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(0px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(2px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(2px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        /* This class will be applied by JavaScript temporarily during a roll */
+        .is-shaking {
+            animation: gachaShake 0.15s infinite;
+        }
+
+        /* Layout elements inside the machine container */
+        .prize-card {
+            padding: 15px;
+            background-color: rgba(255, 249, 230, 0.95);
+            border: 2px dashed #ffa502;
+            border-radius: 12px;
+            min-height: 70px;
+            width: 260px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            transition: opacity 0.2s;
+        }
+
+        .pull-btn {
+            background-color: #ff4757;
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            font-size: 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(255, 71, 87, 0.4);
+            transition: transform 0.1s;
+        }
+
+        .pull-btn:active {
+            transform: scale(0.95);
+        }
+
+        .pull-btn:disabled {
+            background-color: #a4b0be;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Setup form styles */
+        .setup-container {
+            background-color: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            max-width: 420px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        input[type="text"] {
+            padding: 12px;
+            font-size: 15px;
+            border: 2px solid #e4e7eb;
+            border-radius: 10px;
+            outline: none;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        input[type="text"]:focus {
+            border-color: #ff4757;
+        }
+
+        .add-btn {
+            background-color: #2ed573;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #display-recipient {
+            font-size: 13px;
+            color: #747d8c;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0 0 6px 0;
+            font-weight: bold;
+        }
+
+        #display-message {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2f3542;
+            margin: 0;
+        }
+
+        ul {
+            text-align: left;
+            padding-left: 20px;
+            max-height: 120px;
+            overflow-y: auto;
+            color: #57606f;
+            margin-bottom: 0;
+        }
+
+        .pool-item {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- THE MACHINE PLAY AREA -->
+<div class="gacha-container" id="machine-wrapper">
+    <div class="prize-card" id="prize-box">
+        <p id="display-recipient">To: Someone Special</p>
+        <p id="display-message">Load custom messages below!</p>
+    </div>
+    <button id="gacha-button" class="pull-btn">Pull Gacha!</button>
+</div>
+
+<!-- THE SETUP AREA -->
+<div class="setup-container">
+    <h3 style="margin-top: 0;">⚙️ Load the Machine</h3>
+    
+    <div class="input-group">
+        <input type="text" id="recipient-input" placeholder="Who is this for? (e.g., Sis, Ryan)">
+        <input type="text" id="message-input" placeholder="Type their custom secret message...">
+        <button id="add-button" class="add-btn">Add to Capsule Pool</button>
+    </div>
+
+    <h4>Capsules currently inside:</h4>
+    <ul id="message-list"></ul>
+</div>
+
+<script>
+    let gachaPool = [];
+    let lastPick = -1;
+
+    // Get Elements
+    const machineWrapper = document.getElementById("machine-wrapper");
+    const prizeBox = document.getElementById("prize-box");
+    const recipientInput = document.getElementById("recipient-input");
+    const messageInput = document.getElementById("message-input");
+    const addBtn = document.getElementById("add-button");
+    const gachaBtn = document.getElementById("gacha-button");
+    const displayRecipient = document.getElementById("display-recipient");
+    const displayMessage = document.getElementById("display-message");
+    const listDisplay = document.getElementById("message-list");
+
+    // Display Pool List Function
+    function updateListDisplay() {
+        listDisplay.innerHTML = "";
+        gachaPool.forEach((item) => {
+            const li = document.createElement("li");
+            li.className = "pool-item";
+            li.innerText = `For: ${item.to} ➡️ "${item.msg}"`;
+            listDisplay.appendChild(li);
+        });
+    }
+
+    // Add Item Logic
+    addBtn.addEventListener("click", () => {
+        const toText = recipientInput.value.trim() || "Someone Special";
+        const msgText = messageInput.value.trim();
+        
+        if (msgText !== "") {
+            gachaPool.push({ to: toText, msg: msgText });
+            recipientInput.value = "";
+            messageInput.value = "";
+            updateListDisplay();
+            
+            if(gachaPool.length === 1) {
+                displayMessage.innerText = "Ready to pull!";
+                displayRecipient.innerText = "Waiting...";
+            }
+        } else {
+            alert("Please type a message before adding!");
+        }
+    });
+
+    // Pull Button Logic with Shake Trigger
+    gachaBtn.addEventListener("click", () => {
+        if (gachaPool.length === 0) {
+            displayMessage.innerText = "⚠️ Machine is empty!";
+            displayRecipient.innerText = "Error";
+            return;
+        }
+
+        gachaBtn.disabled = true;
+        prizeBox.style.opacity = "0";
+        machineWrapper.classList.add("is-shaking");
+
+        setTimeout(() => {
+            machineWrapper.classList.remove("is-shaking");
+            
+            let currentPick;
+            if (gachaPool.length === 1) {
+                currentPick = 0;
+            } else {
+                do {
+                    currentPick = Math.floor(Math.random() * gachaPool.length);
+                } while (currentPick === lastPick);
+                lastPick = currentPick;
+            }
+
+            displayRecipient.innerText = `To: ${gachaPool[currentPick].to}`;
+            displayMessage.innerText = gachaPool[currentPick].msg;
+            prizeBox.style.opacity = "1";
+            gachaBtn.disabled = false;
+        }, 800);
+    });
+</script>
+
+</body>
+</html>
