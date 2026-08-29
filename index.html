@@ -1,4 +1,4 @@
-html<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,39 +6,19 @@ html<!DOCTYPE html>
     <title>Gacha Machine</title>
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: sans-serif; overflow: hidden; background: #f7f9fc; }
-        
-        /* CORNER LAYOUTS */
         .recipient-header { position: absolute; top: 20px; left: 20px; font-size: 22px; font-weight: bold; color: #ff4757; background: rgba(255,255,255,0.95); padding: 10px 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); z-index: 100; }
         .redirect-footer { position: absolute; bottom: 20px; left: 20px; font-size: 14px; color: #57606f; background: rgba(255,255,255,0.95); padding: 10px 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); z-index: 100; }
         .redirect-footer a { color: #1e90ff; text-decoration: none; font-weight: bold; margin-left: 5px; }
-        
-        /* CONTAINER WITH JPEG BACKGROUND */
         .gacha-container { background: url('machine.jpeg') no-repeat center center/contain; width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; box-sizing: border-box; }
-        
-        /* MACHINE SHAKE */
         @keyframes shake { 0%,100%{transform:translate(0,0)} 20%{transform:translate(-5px,2px)} 40%{transform:translate(4px,-2px)} 60%{transform:translate(-3px,-3px)} 80%{transform:translate(5px,4px)} }
         .is-shaking { animation: shake 0.12s infinite; }
-        
-        /* FALLING CAPSULE IMAGE */
-        #gacha-capsule { position: absolute; width: 70px; height: 70px; background: url('capsule.jpeg') no-repeat center center/contain; cursor: pointer; display: none; z-index: 50; }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
-        .has-landed { animation: pulse 1s infinite ease-in-out !important; }
-        
-        /* CLICK ME TOOLTIP HINT */
-        #click-tip { position: absolute; font-weight: bold; color: #ff4757; font-size: 14px; background: white; padding: 4px 8px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); white-space: nowrap; display: none; z-index: 60; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-        .is-blinking { animation: blink 0.8s infinite; display: block !important; }
-        
-        /* ROLL OUT TRAJECTORY */
+        #gacha-capsule { position: absolute; width: 70px; height: 70px; background: url('capsule.jpeg') no-repeat center center/contain; cursor: pointer; display: none; z-index: 50; transition: transform 0.1s; }
+        #gacha-capsule:hover { transform: scale(1.1); }
         @keyframes rollOut { 0% { top: 40%; opacity: 0; transform: scale(0.4) rotate(0deg); } 50% { opacity: 1; } 100% { top: 68%; transform: scale(1) rotate(360deg); } }
         .is-dropping { animation: rollOut 0.6s ease-out forwards; display: block !important; }
-        
-        /* PRIZE REVEAL MODAL BOX */
         .prize-card { padding: 25px; background: rgba(255,249,230,.98); border: 3px dashed #ffa502; border-radius: 16px; width: 280px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 80; display: none; position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); }
         .pull-btn, .btn { background: #ff4757; color: #fff; border: none; padding: 14px 35px; font-size: 20px; border-radius: 30px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(255,71,87,0.4); z-index: 10; margin-top: 180px; }
         .pull-btn:disabled { background: #a4b0be; cursor: not-allowed; box-shadow: none; }
-        
-        /* ARCHITECTURE ROUTING VIEWS */
         .page-view { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; }
         .active-view { display: flex; }
         .setup-container { background: #fff; padding: 30px; border-radius: 20px; box-shadow: 0 8px 30px rgba(0,0,0,0.12); width: 90%; max-width: 420px; box-sizing: border-box; }
@@ -68,11 +48,10 @@ html<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- PURE PLAY RECEIVER WINDOW VIEW -->
+    <!-- PURE PLAY WINDOW VIEW -->
     <div id="play-page" class="page-view">
         <div class="recipient-header" id="display-recipient">To: Someone Special</div>
         <div class="gacha-container" id="machine-wrapper">
-            <div id="click-tip">👇 CLICK ME!</div>
             <div id="gacha-capsule"></div>
             <div class="prize-card" id="prize-box">
                 <p id="display-message" style="margin:0; font-size:18px; font-weight:bold;"></p>
@@ -126,35 +105,25 @@ html<!DOCTYPE html>
         navigator.clipboard.writeText(`${cleanUrl}?to=${encodeURIComponent(recipient)}&pool=${b64}`).then(() => alert("✨ Link copied!"));
     });
 
-    const gachaBtn = document.getElementById("gacha-button"), capsule = document.getElementById("gacha-capsule"), prizeBox = document.getElementById("prize-box"), wrapper = document.getElementById("machine-wrapper"), clickTip = document.getElementById("click-tip");
+    const gachaBtn = document.getElementById("gacha-button"), capsule = document.getElementById("gacha-capsule"), prizeBox = document.getElementById("prize-box"), wrapper = document.getElementById("machine-wrapper");
 
     gachaBtn.addEventListener("click", () => {
         if (!masterPool.length) return;
-        gachaBtn.disabled = true; prizeBox.style.display = "none"; capsule.style.display = "none"; clickTip.style.display = "none";
-        capsule.classList.remove("is-dropping", "has-landed"); clickTip.classList.remove("is-blinking"); wrapper.classList.add("is-shaking");
-        setTimeout(() => { 
-            wrapper.classList.remove("is-shaking"); capsule.classList.add("is-dropping"); 
-            setTimeout(() => {
-                capsule.classList.add("has-landed");
-                clickTip.style.top = (capsule.offsetTop - 35) + "px";
-                clickTip.style.left = (capsule.offsetLeft + capsule.offsetWidth/2 - clickTip.offsetWidth/2) + "px";
-                clickTip.classList.add("is-blinking");
-            }, 600);
-        }, 800);
+        gachaBtn.disabled = true; prizeBox.style.display = "none"; capsule.style.display = "none"; capsule.classList.remove("is-dropping"); wrapper.classList.add("is-shaking");
+        setTimeout(() => { wrapper.classList.remove("is-shaking"); capsule.classList.add("is-dropping"); }, 800);
     });
-    
+
     capsule.addEventListener("click", () => {
         if (activeDeck.length === 0) activeDeck = [...masterPool];
         let randIndex = Math.floor(Math.random() * activeDeck.length);
-        if (masterPool.length > 1 && activeDeck[randIndex] === lastPickText) randIndex =
-            (randIndex + 1) % activeDeck.length;
+        if (masterPool.length > 1 && activeDeck[randIndex] === lastPickText) randIndex = (randIndex + 1) % activeDeck.length;
         let chosenMessage = activeDeck[randIndex]; lastPickText = chosenMessage;
-        document.getElementById("display-message").innerText = chosenMessage; 
-        activeDeck.splice(randIndex, 1);
-        capsule.style.display = "none"; clickTip.style.display = "none"; capsule.classList.remove("is-
-                                                                                                  dropping", "has-landed"); clickTip.classList.remove("is-blinking"); prizeBox.style.display = 
-            "block";
+        document.getElementById("display-message").innerText = chosenMessage; activeDeck.splice(randIndex, 1);
+        capsule.style.display = "none"; capsule.classList.remove("is-dropping"); prizeBox.style.display = "block";
     });
-    
-    window.closePrize = function() { prizeBox.style.display = "none"; gachaBtn.disabled = false; 
-                                   };
+
+    window.closePrize = function() { prizeBox.style.display = "none"; gachaBtn.disabled = false; };
+</script>
+</body>
+</html>
+
