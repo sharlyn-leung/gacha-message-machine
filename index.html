@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Animated Custom Gacha Machine</title>
+    <title>Surprise Gacha Machine Gift</title>
     <style>
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
@@ -15,19 +15,31 @@
             margin: 0;
         }
 
-        /* THE SHAKING MACHINE CONTAINER STYLE WITH JPEG BACKGROUND */
+        /* RECIPIENT DISPLAY POSITIONED COMPLETELY ON TOP OF THE MACHINE */
+        .recipient-header {
+            font-size: 26px;
+            font-weight: bold;
+            color: #ff4757;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 15px;
+            background-color: #fff;
+            padding: 10px 25px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            text-align: center;
+            min-height: 35px;
+        }
+
+        /* THE SHAKING MACHINE CONTAINER WITH JPEG BACKGROUND */
         .gacha-container {
             background-image: url('machine.jpeg'); 
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
-            
-            /* Sizing to frame your background image perfectly */
             width: 420px;
             height: 520px; 
             margin-bottom: 25px;
-            
-            /* Aligning the content neatly inside the center of your machine image */
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -35,7 +47,7 @@
             position: relative;
         }
 
-        /* THE SHAKING ANIMATION LOGIC */
+        /* SHAKING ANIMATION LOGIC */
         @keyframes gachaShake {
             0% { transform: translate(2px, 1px) rotate(0deg); }
             10% { transform: translate(-1px, -2px) rotate(-1deg); }
@@ -50,23 +62,32 @@
             100% { transform: translate(1px, -2px) rotate(-1deg); }
         }
 
-        /* This class will be applied by JavaScript temporarily during a roll */
         .is-shaking {
             animation: gachaShake 0.15s infinite;
         }
 
-        /* Layout elements inside the machine container */
+        /* Text bubble inside the capsule window */
         .prize-card {
             padding: 15px;
             background-color: rgba(255, 249, 230, 0.95);
             border: 2px dashed #ffa502;
             border-radius: 12px;
-            min-height: 70px;
-            width: 260px;
+            min-height: 50px;
+            width: 240px;
             text-align: center;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             margin-bottom: 20px;
             transition: opacity 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #display-message {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2f3542;
+            margin: 0;
         }
 
         .pull-btn {
@@ -82,9 +103,7 @@
             transition: transform 0.1s;
         }
 
-        .pull-btn:active {
-            transform: scale(0.95);
-        }
+        .pull-btn:active { transform: scale(0.95); }
 
         .pull-btn:disabled {
             background-color: #a4b0be;
@@ -92,13 +111,24 @@
             box-shadow: none;
         }
 
-        /* Setup form styles */
+        /* TWO SEPARATE VIEWS LAYOUT DESIGN */
+        .page-view {
+            display: none; 
+            width: 100%;
+            max-width: 420px;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .active-view {
+            display: flex;
+        }
+
         .setup-container {
             background-color: white;
             padding: 25px;
             border-radius: 20px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-            max-width: 420px;
             width: 100%;
             box-sizing: border-box;
         }
@@ -120,35 +150,26 @@
             width: 100%;
         }
 
-        input[type="text"]:focus {
-            border-color: #ff4757;
-        }
+        input[type="text"]:focus { border-color: #ff4757; }
 
-        .add-btn {
-            background-color: #2ed573;
-            color: white;
+        .btn {
             border: none;
             padding: 12px;
             font-size: 16px;
             border-radius: 10px;
             cursor: pointer;
             font-weight: bold;
+            color: white;
+            transition: transform 0.1s;
         }
 
-        #display-recipient {
-            font-size: 13px;
-            color: #747d8c;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin: 0 0 6px 0;
-            font-weight: bold;
-        }
-
-        #display-message {
-            font-size: 20px;
-            font-weight: bold;
-            color: #2f3542;
-            margin: 0;
+        .btn:active { transform: scale(0.98); }
+        .add-btn { background-color: #2ed573; }
+        
+        .share-btn { 
+            background-color: #1e90ff; 
+            margin-top: 15px; 
+            width: 100%;
         }
 
         ul {
@@ -157,93 +178,163 @@
             max-height: 120px;
             overflow-y: auto;
             color: #57606f;
-            margin-bottom: 0;
         }
 
-        .pool-item {
-            font-size: 14px;
-            margin-bottom: 5px;
+        /* REDIRECT FOOTER MESSAGE AT THE BOTTOM */
+        .redirect-footer {
+            margin-top: 30px;
+            font-size: 15px;
+            color: #57606f;
+            text-align: center;
+            background-color: #ffffff;
+            padding: 12px 25px;
+            border-radius: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
+
+        .redirect-footer a {
+            color: #1e90ff;
+            text-decoration: none;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        .redirect-footer a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
 
-<!-- THE MACHINE PLAY AREA -->
-<div class="gacha-container" id="machine-wrapper">
-    <div class="prize-card" id="prize-box">
-        <p id="display-recipient">To: Someone Special</p>
-        <p id="display-message">Load custom messages below!</p>
-    </div>
-    <button id="gacha-button" class="pull-btn">Pull Gacha!</button>
-</div>
+    <!-- ================= VIEW 1: CREATION BUILDER PAGE ================= -->
+    <div id="create-page" class="page-view">
+        <div class="setup-container">
+            <h2 style="margin-top: 0; color: #ff4757; text-align: center;">🎁 Gift Machine Builder</h2>
+            
+            <div class="input-group">
+                <input type="text" id="recipient-input" placeholder="Who is this whole gift for? (e.g., Mom)">
+                <input type="text" id="message-input" placeholder="Type a capsule surprise message...">
+                <button id="add-button" class="btn add-btn">Add Capsule to Gift Box</button>
+            </div>
 
-<!-- THE SETUP AREA -->
-<div class="setup-container">
-    <h3 style="margin-top: 0;">⚙️ Load the Machine</h3>
-    
-    <div class="input-group">
-        <input type="text" id="recipient-input" placeholder="Who is this for? (e.g., Sis, Ryan)">
-        <input type="text" id="message-input" placeholder="Type their custom secret message...">
-        <button id="add-button" class="add-btn">Add to Capsule Pool</button>
+            <h4>Added Capsules (<span id="capsule-count">0</span>):</h4>
+            <ul id="message-list"></ul>
+
+            <button id="share-button" class="btn share-btn" style="display: none;">🔗 Copy Gift Playground Link</button>
+        </div>
     </div>
 
-    <h4>Capsules currently inside:</h4>
-    <ul id="message-list"></ul>
-</div>
+
+    <!-- ================= VIEW 2: PURE PLAY/GIFT RECEIVER PAGE ================= -->
+    <div id="play-page" class="page-view">
+        <!-- Recipient display is now OUTSIDE and ON TOP of the machine image -->
+        <div class="recipient-header" id="display-recipient">To: Someone Special</div>
+        
+        <div class="gacha-container" id="machine-wrapper">
+            <div class="prize-card" id="prize-box">
+                <p id="display-message">Spin to reveal a capsule!</p>
+            </div>
+            <button id="gacha-button" class="pull-btn">Pull Gacha!</button>
+        </div>
+
+        <!-- REDIRECT FOOTER COMPONENT AT THE BOTTOM -->
+        <div class="redirect-footer">
+            want to create ur own? <a id="creator-link" href="#">click this like to create</a>
+        </div>
+    </div>
 
 <script>
     let gachaPool = [];
     let lastPick = -1;
+    let targetRecipient = "Someone Special";
 
-    // Get Elements
-    const machineWrapper = document.getElementById("machine-wrapper");
-    const prizeBox = document.getElementById("prize-box");
+    const createPage = document.getElementById("create-page");
+    const playPage = document.getElementById("play-page");
+
+    // Form inputs
     const recipientInput = document.getElementById("recipient-input");
     const messageInput = document.getElementById("message-input");
     const addBtn = document.getElementById("add-button");
+    const shareBtn = document.getElementById("share-button");
+    const listDisplay = document.getElementById("message-list");
+    const capsuleCount = document.getElementById("capsule-count");
+
+    // Game field
+    const machineWrapper = document.getElementById("machine-wrapper");
+    const prizeBox = document.getElementById("prize-box");
     const gachaBtn = document.getElementById("gacha-button");
     const displayRecipient = document.getElementById("display-recipient");
     const displayMessage = document.getElementById("display-message");
-    const listDisplay = document.getElementById("message-list");
+    const creatorLink = document.getElementById("creator-link");
 
-    // Display Pool List Function
-    function updateListDisplay() {
-        listDisplay.innerHTML = "";
-        gachaPool.forEach((item) => {
-            const li = document.createElement("li");
-            li.className = "pool-item";
-            li.innerText = `For: ${item.to} ➡️ "${item.msg}"`;
-            listDisplay.appendChild(li);
-        });
+    // Setup redirection baseline path dynamically
+    const cleanUrl = window.location.origin + window.location.pathname;
+    creatorLink.href = cleanUrl;
+
+    // CHECK LINK ROUTING STATUS
+    const urlParams = new URLSearchParams(window.location.search);
+    const encodedData = urlParams.get('pool');
+    const encodedUser = urlParams.get('to');
+
+    if (encodedData) {
+        // FRIEND IS READING (Pure read mode active)
+        try {
+            gachaPool = JSON.parse(decodeURIComponent(atob(encodedData)));
+            targetRecipient = encodedUser ? decodeURIComponent(encodedUser) : "Someone Special";
+            
+            displayRecipient.innerText = `To: ${targetRecipient}`;
+            playPage.classList.add("active-view");
+        } catch(e) {
+            alert("Error parsing link!");
+            createPage.classList.add("active-view");
+        }
+    } else {
+        // CREATOR IS BUILDING (Setup workspace panel active)
+        createPage.classList.add("active-view");
     }
 
-    // Add Item Logic
+    // Builder mechanics
     addBtn.addEventListener("click", () => {
-        const toText = recipientInput.value.trim() || "Someone Special";
         const msgText = messageInput.value.trim();
+        if (recipientInput.value.trim() !== "") {
+       targetRecipient = recipientInput.value.trim();
+     }
         
-        if (msgText !== "") {
-            gachaPool.push({ to: toText, msg: msgText });
-            recipientInput.value = "";
-            messageInput.value = "";
-            updateListDisplay();
-            
-            if(gachaPool.length === 1) {
-                displayMessage.innerText = "Ready to pull!";
-                displayRecipient.innerText = "Waiting...";
-            }
-        } else {
-            alert("Please type a message before adding!");
-        }
+    if (msgText !== "") {
+        gachaPool.push(msgText);
+        messageInput.value = "";
+        recipientInput.disabled = true;
+
+    const li = document.createElement("li");
+        li.innerText = "${msgText}";
+        listDisplay.appendChild(li);
+        capsuleCount.innerText = gachaPool.length;
+
+    shareBtn.style.display = "block";
+    } else {
+        alert("Please type a capsule message!");
+    }
     });
 
-    // Pull Button Logic with Shake Trigger
+    // Generate Shareable Data Package Link
+    shareBtn.addEventListener("click", () => {
+        const base64Pool = btoa(encodeURIComponent(JSON.stringify(gachaPool)));
+        const finalUrl = ${cleanUrl}?
+            to=${encodeURIComponent(targetRecipient)}&pool=${base64Pool};
+
+    navigator.clipboard.writeText(finalUrl).then(() => {
+        alert("✨ Link copied! Send this to your friend. They will purely get the machine, text banner 
+              on top, and the creation footer link below!");
+            }).catch(() => {
+        alert("Copy error! Your direct link is:\n\n" + finalUrl);
+    });
+    });
+
+    // Spin Machine Execution
     gachaBtn.addEventListener("click", () => {
-        if (gachaPool.length === 0) {
-            displayMessage.innerText = "⚠️ Machine is empty!";
-            displayRecipient.innerText = "Error";
-            return;
-        }
+        if (gachaPool.length === 0) return;
+
+                              gachaBtn.disabled = true;
+        prizeBox.style.opacity = "0";
+        machineWrapper.classList.add("is-shaking");
 
         gachaBtn.disabled = true;
         prizeBox.style.opacity = "0";
@@ -261,14 +352,9 @@
                 } while (currentPick === lastPick);
                 lastPick = currentPick;
             }
-
-            displayRecipient.innerText = `To: ${gachaPool[currentPick].to}`;
-            displayMessage.innerText = gachaPool[currentPick].msg;
-            prizeBox.style.opacity = "1";
-            gachaBtn.disabled = false;
+            displayMessage.innerText = gachaPool[currentPick];
+            prizeBox.style.opacity = "1"
+                ;gachaBtn.disabled = false;
         }, 800);
     });
-</script>
-
-</body>
-</html>
+                            
